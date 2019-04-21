@@ -27,8 +27,6 @@
 //following codes are b+tree code for masstree
 //
 
-//TODO 邪悪マクロ
-#define int uint64_t
 #define N 15
 
 using std::cout;
@@ -50,7 +48,7 @@ typedef struct _NODE {
     bool isLeaf;
     struct _NODE *chi[N];
     //int key[N-1];
-    uint64_t key[N-1];
+    int key[N-1];
     int nkey;
     struct _NODE *parent;
     void* lv[N];
@@ -59,7 +57,7 @@ typedef struct _NODE {
 typedef struct _TEMP {
     bool isLeaf;
     NODE *chi[N+1]; // for internal split (for leaf, only N is enough)
-    uint64_t key[N]; // for leaf split
+    int key[N]; // for leaf split
     int nkey;
     void* lv[N+1];
 
@@ -197,7 +195,7 @@ alloc_root(NODE *left, int rs_key, NODE *right)
 }
 
 NODE *
-find_leaf(NODE *node, uint64_t key)
+find_leaf(NODE *node, int key)
 {
     int kid;
 
@@ -246,7 +244,7 @@ insert_in_node_temp(TEMP *p,NODE *c,int key,int index){
 }
 
 NODE *
-insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data){
+insert_in_parent(NODE *node, int key, NODE *node_dash, DATA *data){
     if (node==Root){
         return Root=alloc_root(node,key,node_dash);
     }
@@ -332,7 +330,7 @@ insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data){
 }
 //temp用の要素挿入関数
 TEMP *
-insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
+insert_in_leaf_temp(TEMP *leaf,int key,DATA *data){
     int i;
 
     if(key<leaf->key[0]){
@@ -363,7 +361,7 @@ insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
 }
 
 NODE *
-insert_in_leaf(NODE *leaf, uint64_t key, DATA *data)
+insert_in_leaf(NODE *leaf, int key, DATA *data)
 {
     int i;
     //cout<<"key="<<data->key<<": val="<<data->val<<endl;
@@ -396,10 +394,8 @@ insert_in_leaf(NODE *leaf, uint64_t key, DATA *data)
 
 
 void
-masstree_insert(vector<uint64_t>& key_vec, DATA *data)
+insert(int key, DATA *data)
 {
-
-    uint64_t key=key_vec[0];
     NODE *leaf;
 
     if (Root == NULL) {
@@ -713,7 +709,7 @@ bool find(int key){
 }
 
 void
-masstree_init_root(void)
+init_root(void)
 {
     Root = NULL;
 }
@@ -726,7 +722,7 @@ search_core(const int key)
         if (n->key[i] == key) {
             DATA* ptr=(DATA*)(n->lv[i]);
             //TODO
-            cout<<"find! sample_key="<<ptr->key<<" val="<<ptr->val<<endl;
+            cout<<"find! key="<<ptr->key<<" val="<<ptr->val<<endl;
             //cout<<"find value from pointer="<< ptr->val <<endl;
             return 1;
         }
@@ -771,6 +767,5 @@ void insert_dataset_data(int data){
 
 
 // end of b+tree implemention
-
 
 
