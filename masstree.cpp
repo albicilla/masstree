@@ -1,114 +1,68 @@
-//
-// Created by 拓真 on 2018/11/12.
-//
-
+#include <iostream>
+#include <sstream>
+#include <bitset>
+//#include "bptree.h"
+//#include "bptree_test.h"
+#include "string_slice.h"
 #include "masstree.h"
+using namespace std;
 
 
 
 
+signed main(){
+    //test_all();
 
+    test_string_slice();
 
+    //初期化
+    masstree_init_root();
 
+    //挿入したキーを記憶するためのvector
+    vector<uint64_t> remind;
 
-
-int
-main(int argc, char *argv[])
-{
-    init_root();
-
-
-
-    vector<int> vec;
-
-    data_root=(DATA*)calloc(1,sizeof(DATA));
-    data_root->next=data_root;
-    data_root->prev=data_root;
-
-    //挿入するデータの数
-    const int snum=112;
-
-    //TODO
-    for(int i=1;i<snum;i++){
-        datatable[i]=DATA(i,i*3);
-        //insert_dataset_data(i);
-        vec.push_back(i);
-    }
-
-    mt19937_64 get_rand_mt;
-    vector<int> svec=vec;
-
-    for(auto itr:vec){
-        insert(itr,&datatable[itr]);
-    }
-
-    //print_tree(Root);
-
-
-    //開始時刻
-    auto start_time =std::chrono::system_clock::now();
-
-    for(auto itr:vec){
-        //cout<<"こいつ->"<<itr<<"を見つけてくれ!"<<endl;
-        if(!search_core(itr)){
-            cout<<itr<<"が見つからなかったよ.."<<endl;
+    //とりあえずサンプルインプット
+    string str[]={"a","b","ddd","aaaaaaa"};
+    for(int i=0;i<4;i++){
+        //
+        //key_stringをuint64_t配列に変換
+        vector<string> ret=eight_partition(str[i]);
+        //vecはuint64_tの配列で著されたキー
+        vector<uint64_t> vec;
+        for(int i=0;i<(int)ret.size();i++){
+            uint64_t key = DumpLetterCode(join_offset(ret[i]));
+            vec.push_back(key);
         }
-    }
-    auto curr_time = std::chrono::system_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - start_time).count();
-
-    cout<<"elapased time sort ="<<elapsed/(double)snum<<"ms"<<endl;
+        //整数一つにつき一つのトライ木のレイヤーができる。
+        int layer_num=vec.size();
 
 
-    reverse(vec.begin(),vec.end());
+        //TODO とりあえずlayor一つ data適当
+        uint64_t key=vec[0];
+        remind.push_back(key);
+        DATA data = DATA(114,514);
+        masstree_insert(vec,&data,0,NULL);
 
-    init_root();
-
-    for(auto itr:vec){
-        insert(itr,NULL);
+        cout<<"finish insert"<<endl;
     }
 
-    //開始時刻
-    start_time = std::chrono::system_clock::now();
 
-    for(auto itr:vec){
-        //cout<<"こいつ->"<<itr<<"を見つけてくれ!"<<endl;
-        if(!search_core(itr)){
-            cout<<itr<<"が見つからなかったよ.."<<endl;
+    cout<<"finish input"<<endl;
+
+
+    //サンプルインプットのチェック
+    for(int i=0;i<4;i++){
+
+        cout<<"こいつ->"<<bitset<64>(remind[i])<<"を見つけてくれ!"<<endl;
+        if(!search_core(remind[i])){
+            cout<<remind[i]<<"が見つからなかったよ.."<<endl;
+            return false;
         }
     }
 
-    curr_time = std::chrono::system_clock::now();
-    elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - start_time).count();
 
-    cout<<"elapased time reverse ="<<elapsed/(double)snum<<"ms"<<endl;
+    cout<<"finish"<<endl;
 
 
 
-    shuffle(vec.begin(),vec.end(),get_rand_mt);
-
-    for(auto itr:vec){
-        insert(itr,NULL);
-    }
-
-    //開始時刻
-    start_time = std::chrono::system_clock::now();
-    for(auto itr:vec){
-        //cout<<"こいつ->"<<itr<<"を見つけてくれ!"<<endl;
-        if(!search_core(itr)){
-            cout<<itr<<"が見つからなかったよ.."<<endl;
-        }
-    }
-    curr_time = std::chrono::system_clock::now();
-    elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - start_time).count();
-    cout<<"elapased time shuffle ="<<elapsed/(double)snum<<"ms"<<endl;
-
-
-
-
-
-
-
-
-    return 0;
 }
