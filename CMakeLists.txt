@@ -3,5 +3,5 @@ project(masstree)
 
 set(CMAKE_CXX_STANDARD 11)
 
-#add_executable(masstree masstree.cpp)
-add_executable(cbtree cbtree)
+add_executable(masstree masstree.cpp)
+#add_executable(cbtree cbtree)

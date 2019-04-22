@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <bitset>
 //#include "bptree.h"
 //#include "bptree_test.h"
 #include "string_slice.h"
@@ -35,20 +36,24 @@ signed main(){
         //整数一つにつき一つのトライ木のレイヤーができる。
         int layer_num=vec.size();
 
-        cout<<"vec[0]="<<vec[0]<<endl;
 
         //TODO とりあえずlayor一つ data適当
         uint64_t key=vec[0];
         remind.push_back(key);
         DATA data = DATA(114,514);
-        masstree_insert(vec,&data);
+        masstree_insert(vec,&data,0,NULL);
+
+        cout<<"finish insert"<<endl;
     }
+
+
+    cout<<"finish input"<<endl;
 
 
     //サンプルインプットのチェック
     for(int i=0;i<3;i++){
 
-        cout<<"こいつ->"<<remind[i]<<"を見つけてくれ!"<<endl;
+        cout<<"こいつ->"<<bitset<64>(remind[i])<<"を見つけてくれ!"<<endl;
         if(!search_core(remind[i])){
             cout<<remind[i]<<"が見つからなかったよ.."<<endl;
             return false;

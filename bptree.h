@@ -21,6 +21,7 @@
 #include <set>
 #include <chrono>
 #include <iomanip>
+#define dump(x) cout<<#x<<"="<<x<<endl
 
 
 //
@@ -43,6 +44,8 @@ typedef struct _DATA {
     struct _DATA *next;
     struct _DATA *prev;
 } DATA;
+
+
 
 typedef struct _NODE {
     bool isLeaf;
@@ -325,7 +328,6 @@ insert_in_parent(NODE *node, int key, NODE *node_dash, DATA *data){
         t->chi[i]->parent=pp;
 
         return insert_in_parent(parent,key_temp,pp,data);
-
     }
 }
 //temp用の要素挿入関数
@@ -382,6 +384,8 @@ insert_in_leaf(NODE *leaf, int key, DATA *data)
                 leaf->lv[i+1]=leaf->lv[i];
             }
         }
+
+       // cout<<"i);="<<i<<endl;
 
         leaf->key[i+1]=key;
         leaf->lv[i+1]=(void * )data;
@@ -450,12 +454,10 @@ insert(int key, DATA *data)
 
         insert_in_parent(leaf,key_dash,leaf_dash,data);
 
-
     }
 }
 
 void adjust_root(NODE* root){
-//    dump(root->nkey);
     if(root->nkey>0)return;
     if(!root->isLeaf){
         cerr<<"rootノードで子があと一個しかなかったら"<<endl;
@@ -496,7 +498,6 @@ void delete_entry(NODE *nd,int k)
     //キーを減らす
     nd->nkey--;
 
-//    dump(nd->nkey);
     for(int i=0;i<nd->nkey;i++){
 //        dump(nd->key[i]);
     }

@@ -21,6 +21,8 @@
 #include <set>
 #include <chrono>
 #include <iomanip>
+#include <bitset>
+#define dump(x) cout<<#x<<"="<<x<<endl
 
 
 //
@@ -46,6 +48,12 @@ typedef struct _DATA {
     struct _DATA *prev;
 } DATA;
 
+typedef struct _link_or_value{
+    void* data;
+    void* link;
+}link_or_value;
+
+
 typedef struct _NODE {
     bool isLeaf;
     struct _NODE *chi[N];
@@ -53,7 +61,7 @@ typedef struct _NODE {
     uint64_t key[N-1];
     int nkey;
     struct _NODE *parent;
-    void* lv[N];
+    link_or_value lv[N];
 } NODE;
 
 typedef struct _TEMP {
@@ -61,7 +69,7 @@ typedef struct _TEMP {
     NODE *chi[N+1]; // for internal split (for leaf, only N is enough)
     uint64_t key[N]; // for leaf split
     int nkey;
-    void* lv[N+1];
+    link_or_value lv[N+1];
 
 } TEMP;
 
@@ -71,8 +79,11 @@ DATA *data_root;
 //datatable
 DATA datatable[1123456];
 
-
+//TODO いつか配列にするぞ
 NODE *Root = NULL;
+NODE *Root1 = NULL;
+
+void masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE* root);
 
 void
 print_tree_core(NODE *n)
@@ -138,17 +149,6 @@ new_bptree_temp()
     return new_node;
 }
 
-NODE *
-alloc_leaf_dash(NODE *parent){
-    NODE *node;
-    if (!(node = (NODE *)calloc(1, sizeof(NODE)))) ERR;
-    node->isLeaf = true;
-    node->parent = parent;
-    node->nkey = 0;
-
-    return node;
-
-}
 
 NODE *
 alloc_leaf(NODE *parent)
@@ -247,6 +247,7 @@ insert_in_node_temp(TEMP *p,NODE *c,int key,int index){
 
 NODE *
 insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data){
+    //TODO
     if (node==Root){
         return Root=alloc_root(node,key,node_dash);
     }
@@ -260,6 +261,7 @@ insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data){
 
     if(parent->nkey<N-1){
         insert_in_node(parent,node_dash,key,index);
+        //TODO
         return Root;
     }else{
         //親がいっぱいなので再帰処理で親ブロックを追加
@@ -304,7 +306,6 @@ insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data){
 
 
             // dump(t->key[i]);
-
             parent->nkey++;
         }
         assert(parent->nkey==mid_pos);
@@ -341,7 +342,7 @@ insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
             leaf->key[i]=leaf->key[i-1];
         }
         leaf->key[0]=key;
-        leaf->lv[0]=(void *)data;
+        leaf->lv[0].data=data;
     }
     else{
         for(i = leaf->nkey-1;i>=0;--i){
@@ -354,7 +355,7 @@ insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
         }
 
         leaf->key[i+1]=key;
-        leaf->lv[i+1]=(void * )data;
+        leaf->lv[i+1].data=(void * )data;
     }
     leaf->nkey++;
 
@@ -363,17 +364,40 @@ insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
 }
 
 NODE *
-insert_in_leaf(NODE *leaf, uint64_t key, DATA *data)
+insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now)
 {
-    int i;
-    //cout<<"key="<<data->key<<": val="<<data->val<<endl;
+    uint64_t key=key_vec[layer_now];
+
+    int layer_num=key_vec.size()-1;
+
+    for(int i=0;i<leaf->nkey;i++){
+        cout<<"bitset="<<bitset<64>(leaf->key[i])<<endl;
+    }
+
+    uint64_t i=0;
     if (key < leaf->key[0]) {
         for (i = leaf->nkey; i > 0; i--) {
             leaf->lv[i] = leaf->lv[i-1] ;
             leaf->key[i] = leaf->key[i-1] ;
         }
         leaf->key[0] = key;
-        leaf->lv[0] = (void *)data;
+        leaf->nkey++;
+
+
+        //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
+        if(layer_num==layer_now){
+            leaf->lv[i+1].data = (void*)data;
+        }
+        else {
+            //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
+            if(leaf->lv[0].link==NULL) {
+                cout<<"create new layer"<<endl;
+
+                leaf->lv[0].link = alloc_leaf(leaf);
+            }
+            masstree_insert(key_vec,data,layer_now+1,(NODE*)leaf->lv[0].link);
+
+        }
     }
     else {
         for(i = leaf->nkey-1;i>=0;--i){
@@ -381,81 +405,172 @@ insert_in_leaf(NODE *leaf, uint64_t key, DATA *data)
                 break;
             }else{
                 leaf->key[i+1]=leaf->key[i];
-                leaf->lv[i+1]=leaf->lv[i];
+                leaf->lv[i+1].data=leaf->lv[i].data;
             }
         }
 
         leaf->key[i+1]=key;
-        leaf->lv[i+1]=(void * )data;
+        leaf->nkey++;
+
+
+        dump(layer_num);dump(layer_now);
+        //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
+        if(layer_num==layer_now){
+            leaf->lv[i+1].data = (void*)data;
+
+            //DATA* ptr=(DATA*)(leaf->lv[i+1].data);
+        }
+        else
+        {
+            //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
+            if(leaf->lv[i+1].link==NULL){
+                cout<<"create new layer"<<endl;
+                leaf->lv[i+1].link=alloc_leaf(leaf);
+            }
+
+            masstree_insert(key_vec,data,layer_now+1,(NODE*)leaf->lv[i+1].link);
+            NODE* test=find_leaf((NODE*)leaf->lv[i+1].link,key_vec[layer_now]);
+            cout<<"チェエク====="<<test->nkey<<endl;
+
+        }
+
 
     }
-    leaf->nkey++;
+
+
+    cout<<"work correctly insert_in_leaf"<<endl;
 
     return leaf;
 }
 
-
+//小文字rootは次のrootノードへのポインタ
 void
-masstree_insert(vector<uint64_t>& key_vec, DATA *data)
+masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE* root)
 {
 
-    uint64_t key=key_vec[0];
-    NODE *leaf;
 
-    if (Root == NULL) {
-        // cout<<"呼び出し"<<endl;
-        leaf = alloc_leaf(NULL);
-        Root = leaf;
-    }
-    else {
-        leaf = find_leaf(Root, key);
-    }
+            uint64_t key = key_vec[layer_now];
+            NODE *leaf;
 
-    if (leaf->nkey < (N-1)) {
-        insert_in_leaf(leaf, key, data);
-    }
-    else {
-        TEMP *Temp=create_new_node();
-        for(int i=0;i<N-1;i++){
-            Temp->key[i]=leaf->key[i];
-            Temp->lv[i]=leaf->lv[i];
-            Temp->nkey++;
-        }
-        insert_in_leaf_temp(Temp,key,data);
+            cout<<"processing letter="<<uint64toLetter(key)<<endl;
+
+            if(root!=NULL){
+
+                leaf = find_leaf(root, key);
 
 
-        NODE *leaf_dash=alloc_leaf_dash(NULL);
-
-        leaf_dash->lv[N-1]=leaf->lv[N-1];
-
-        leaf->lv[N-1]=leaf_dash;
-
-        for(int i=0;i<N-1;i++){
-            leaf->lv[i]=NULL;
-            leaf->key[i]=0;
-        }
-        leaf->nkey=0;
-
-        int mid_pos=(N-1)/2;
-        for(int i=0;i<=mid_pos;i++){
-            leaf->lv[i]=Temp->lv[i];
-            leaf->key[i]=Temp->key[i];
-            leaf->nkey++;
-        }
-        for(int i=mid_pos+1;i<N;i++){
-            leaf_dash->key[i-(mid_pos+1)]=Temp->key[i];
-            leaf_dash->lv[i-(mid_pos+1)]=Temp->lv[i];
-            leaf_dash->nkey++;
-        }
-
-        int key_dash=leaf_dash->key[0];
-
-        //dleaf->parent =
-
-        insert_in_parent(leaf,key_dash,leaf_dash,data);
+                dump(leaf->nkey);
+                if (leaf->nkey < (N - 1)) {
+                    cout<<"call insert_in_leaf"<<endl;
+                    insert_in_leaf(leaf, key_vec, data,layer_now);
+                } else {
+                    TEMP *Temp = create_new_node();
+                    for (int i = 0; i < N - 1; i++) {
+                        Temp->key[i] = leaf->key[i];
+                        Temp->lv[i] = leaf->lv[i];
+                        Temp->nkey++;
+                    }
+                    insert_in_leaf_temp(Temp, key, data);
 
 
-    }
+                    NODE *leaf_dash = alloc_leaf(NULL);
+
+                    leaf_dash->lv[N - 1] = leaf->lv[N - 1];
+
+                    //TODO
+                    leaf->lv[N - 1].data = leaf_dash;
+
+                    for (int i = 0; i < N - 1; i++) {
+                        leaf->lv[i].data = NULL;
+                        leaf->key[i] = 0;
+                    }
+                    leaf->nkey = 0;
+
+                    int mid_pos = (N - 1) / 2;
+                    for (int i = 0; i <= mid_pos; i++) {
+                        leaf->lv[i] = Temp->lv[i];
+                        leaf->key[i] = Temp->key[i];
+                        leaf->nkey++;
+                    }
+                    for (int i = mid_pos + 1; i < N; i++) {
+                        leaf_dash->key[i - (mid_pos + 1)] = Temp->key[i];
+                        leaf_dash->lv[i - (mid_pos + 1)] = Temp->lv[i];
+                        leaf_dash->nkey++;
+                    }
+
+                    int key_dash = leaf_dash->key[0];
+
+                    //dleaf->parent =
+
+                    insert_in_parent(leaf, key_dash, leaf_dash, data);
+
+
+                }
+            }else{
+                if (Root == NULL) {
+                    // cout<<"呼び出し"<<endl;
+                    leaf = alloc_leaf(NULL);
+                    Root = leaf;
+                } else {
+                    leaf = find_leaf(Root, key);
+                }
+
+                dump(leaf->key[0]);
+                dump(leaf->nkey);
+                if (leaf->nkey < (N - 1)) {
+                    cout<<"call insert_in_leaf"<<endl;
+                    insert_in_leaf(leaf, key_vec, data,layer_now);
+                } else {
+                    TEMP *Temp = create_new_node();
+                    for (int i = 0; i < N - 1; i++) {
+                        Temp->key[i] = leaf->key[i];
+                        Temp->lv[i] = leaf->lv[i];
+                        Temp->nkey++;
+                    }
+                    insert_in_leaf_temp(Temp, key, data);
+
+
+                    NODE *leaf_dash = alloc_leaf(NULL);
+
+                    leaf_dash->lv[N - 1] = leaf->lv[N - 1];
+
+                    //TODO
+                    leaf->lv[N - 1].data = leaf_dash;
+
+                    for (int i = 0; i < N - 1; i++) {
+                        leaf->lv[i].data = NULL;
+                        leaf->key[i] = 0;
+                    }
+                    leaf->nkey = 0;
+
+                    int mid_pos = (N - 1) / 2;
+                    for (int i = 0; i <= mid_pos; i++) {
+                        leaf->lv[i] = Temp->lv[i];
+                        leaf->key[i] = Temp->key[i];
+                        leaf->nkey++;
+                    }
+                    for (int i = mid_pos + 1; i < N; i++) {
+                        leaf_dash->key[i - (mid_pos + 1)] = Temp->key[i];
+                        leaf_dash->lv[i - (mid_pos + 1)] = Temp->lv[i];
+                        leaf_dash->nkey++;
+                    }
+
+                    int key_dash = leaf_dash->key[0];
+
+                    //dleaf->parent =
+
+                    insert_in_parent(leaf, key_dash, leaf_dash, data);
+
+
+                }
+            }
+
+
+
+
+
+
+
 }
 
 void adjust_root(NODE* root){
@@ -472,7 +587,7 @@ void adjust_root(NODE* root){
 
 
 
-
+//保留
 void delete_entry(NODE *nd,int k)
 {
     //リーフノードから値がkのものを削除する。 delete(K,P) from N
@@ -719,20 +834,45 @@ masstree_init_root(void)
 }
 
 bool
-search_core(const int key)
+search_core(const vector<uint64_t> keys)
 {
-    NODE *n = find_leaf(Root, key);
-    for (int i = 0; i < n->nkey+1; i++) {
-        if (n->key[i] == key) {
-            DATA* ptr=(DATA*)(n->lv[i]);
-            //TODO
-            cout<<"find! sample_key="<<ptr->key<<" val="<<ptr->val<<endl;
-            //cout<<"find value from pointer="<< ptr->val <<endl;
-            return 1;
+    NODE *entry_point=Root;
+
+    for(int lay=0;lay<keys.size();lay++){
+        dump(lay);
+        uint64_t key=keys[lay];
+        NODE *n = find_leaf(entry_point, key);
+
+        dump(n->nkey+1);
+        cout<<"searching key="<<bitset<64>(key)<<endl;
+        for (int i = 0; i < n->nkey+1; i++) {
+            cout<<"key="<<bitset<64>(n->key[i])<<endl;
+
+            if (n->key[i] == key ) {
+
+                if(lay<(int)keys.size()-1){
+                    entry_point = (NODE*)n->lv[i].link;
+
+                    //まだのこりのstringがある
+                    cout<<"go to next layer..."<<endl;
+                    break;
+                }
+                DATA* ptr=(DATA*)(n->lv[i].data);
+                if(ptr==NULL){
+                    cout<<"no data!!"<<endl;
+                }
+                //TODO
+                cout<<"find! sample_num="<<ptr->key<<" val="<<ptr->val<<endl;
+                //cout<<"find value from pointer="<< ptr->val <<endl;
+                return 1;
+            }
         }
+
     }
-    cout << "Key not found: " << key << endl;
+
+    cout<<"not found..."<<endl;
     ERR;
+
     return 0;
 }
 

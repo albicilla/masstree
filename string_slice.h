@@ -105,8 +105,6 @@ bool test_string_slice(){
             cout<<ret<<endl;
         }
     }
-
-
     return true;
 
 
