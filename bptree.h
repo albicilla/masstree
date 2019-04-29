@@ -28,7 +28,7 @@
 //following codes are b+tree code for masstree
 //
 
-#define N 15
+#define N 4
 
 using std::cout;
 using std::endl;

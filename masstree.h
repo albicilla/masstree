@@ -31,7 +31,7 @@
 
 //TODO 邪悪マクロ
 #define int uint64_t
-#define N 15
+#define N 4
 
 using std::cout;
 using std::endl;
@@ -79,9 +79,8 @@ DATA *data_root;
 //datatable
 DATA datatable[1123456];
 
-//TODO いつか配列にするぞ
 NODE *Root = NULL;
-NODE *Root1 = NULL;
+
 
 void masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE* root);
 
@@ -333,8 +332,12 @@ insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data){
 }
 //temp用の要素挿入関数
 TEMP *
-insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
+insert_in_leaf_temp(TEMP *leaf,vector<uint64_t> key_vec,DATA *data,int layer_now){
     int i;
+
+
+    uint64_t key=key_vec[layer_now];
+    int layer_num=key_vec.size();
 
     if(key<leaf->key[0]){
         for(int i=leaf->nkey;i>0;i--){
@@ -342,7 +345,24 @@ insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
             leaf->key[i]=leaf->key[i-1];
         }
         leaf->key[0]=key;
-        leaf->lv[0].data=data;
+        //TODO
+        //leaf->lv[0].data=data;
+        //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
+        if(layer_num==layer_now){
+            leaf->lv[0].data = (void*)data;
+        }
+        else {
+            //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
+            if(leaf->lv[0].link==NULL) {
+                cout<<"create new layer"<<endl;
+
+                //leaf->lv[0].link = alloc_leaf(leaf);
+                leaf->lv[0].link = alloc_leaf(NULL);
+
+            }
+            masstree_insert(key_vec,data,layer_now+1,(NODE*)leaf->lv[0].link);
+
+        }
     }
     else{
         for(i = leaf->nkey-1;i>=0;--i){
@@ -355,7 +375,24 @@ insert_in_leaf_temp(TEMP *leaf,uint64_t key,DATA *data){
         }
 
         leaf->key[i+1]=key;
-        leaf->lv[i+1].data=(void * )data;
+        //TODO
+        //leaf->lv[i+1].data=(void * )data;
+        //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
+        if(layer_num==layer_now){
+            leaf->lv[i+1].data = (void*)data;
+        }
+        else {
+            //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
+            if(leaf->lv[i+1].link==NULL) {
+                cout<<"create new layer"<<endl;
+
+                //leaf->lv[i+1].link = alloc_leaf(leaf);
+                leaf->lv[i+1].link = alloc_leaf(NULL);
+
+            }
+            masstree_insert(key_vec,data,layer_now+1,(NODE*)leaf->lv[0].link);
+
+        }
     }
     leaf->nkey++;
 
@@ -386,7 +423,7 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now)
 
         //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
         if(layer_num==layer_now){
-            leaf->lv[i+1].data = (void*)data;
+            leaf->lv[0].data = (void*)data;
         }
         else {
             //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
@@ -470,7 +507,7 @@ masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE* root)
                         Temp->lv[i] = leaf->lv[i];
                         Temp->nkey++;
                     }
-                    insert_in_leaf_temp(Temp, key, data);
+                    insert_in_leaf_temp(Temp, key_vec, data,layer_now);
 
 
                     NODE *leaf_dash = alloc_leaf(NULL);
@@ -527,7 +564,10 @@ masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE* root)
                         Temp->lv[i] = leaf->lv[i];
                         Temp->nkey++;
                     }
-                    insert_in_leaf_temp(Temp, key, data);
+
+                    dump(Temp->nkey);
+                    //ここで挿入してるんやなって
+                    insert_in_leaf_temp(Temp, key_vec, data,layer_now);
 
 
                     NODE *leaf_dash = alloc_leaf(NULL);
@@ -851,6 +891,9 @@ search_core(const vector<uint64_t> keys)
             if (n->key[i] == key ) {
 
                 if(lay<(int)keys.size()-1){
+                    if((NODE*)n->lv[i].link==NULL){
+                        ERR;
+                    }
                     entry_point = (NODE*)n->lv[i].link;
 
                     //まだのこりのstringがある

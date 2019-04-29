@@ -1,7 +1,24 @@
 #pragma once
 
 
-const int NUM_TESTS=5;
+const int NUM_TESTS=4;
+
+
+vector<string> make_keys(){
+    string str="aaaaaaaaaaaaaaaa";
+    vector<string>ret;
+    for(int i=0;i<10000;i++){
+        if(i%3==0){
+            str+="a";
+        }else if(i%3==1){
+            str+="b";
+        }else if(i%3==2){
+            str+="c";
+        }
+        ret.push_back(str);
+    }
+    return ret;
+}
 
 bool sample_test(){
 
@@ -12,9 +29,11 @@ bool sample_test(){
     vector<vector<uint64_t>> remind(NUM_TESTS);
 
     //とりあえずサンプルインプット
-    string str[]={"a","b","ddd","aaaaaaaaa","aaaaaaaab"};
+    string str[]={"a","b","ddd","aaaaaaaaaa","aaaaaaaab","aaaaaaaac","aaaaaaaabbc","aaaaaaabc"};
 
-    DATA data[5] ={ DATA(1,5), DATA(2,4), DATA(3,3), DATA(4,2),DATA(11,5)};
+    vector<string> strs=make_keys();
+
+    DATA data[8] ={ DATA(1,5), DATA(2,4), DATA(3,3), DATA(4,2),DATA(11,5),DATA(11,6),DATA(12,6),DATA(13,6)};
     for(int i=0;i<NUM_TESTS;i++){
         //
         //key_stringをuint64_t配列に変換
@@ -25,8 +44,6 @@ bool sample_test(){
             uint64_t key = DumpLetterCode(join_offset(ret[i]));
             vec.push_back(key);
         }
-        //整数一つにつき一つのトライ木のレイヤーができる。
-        int layer_num=vec.size();
 
 
         //TODO サンプルテストは　とりあえずlayer一つ data適当
