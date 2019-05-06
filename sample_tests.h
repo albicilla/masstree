@@ -1,7 +1,7 @@
 #pragma once
 
 
-const int NUM_TESTS=6;
+const int NUM_TESTS=8;
 
 
 vector<string> make_keys(){
@@ -39,7 +39,7 @@ bool sample_test(){
     for(int i=0;i<NUM_TESTS;i++){
         //
         //key_stringをuint64_t配列に変換
-        vector<string> ret=eight_partition(str2[i]);
+        vector<string> ret=eight_partition(str[i]);
         //vecはuint64_tの配列で著されたキー
         vector<uint64_t> vec;
         for(int i=0;i<(int)ret.size();i++){
@@ -51,7 +51,7 @@ bool sample_test(){
 
 
 
-        //TODO サンプルテストは　とりあえずlayer一つ data適当
+        //TODO サンプルテストは　data適当
         //uint64_t key=vec[0];
         for(auto itr:vec)remind[i].push_back(itr);
 

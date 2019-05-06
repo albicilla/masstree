@@ -31,7 +31,7 @@
 
 //TODO 邪悪マクロ
 #define int uint64_t
-#define N 4
+#define N 6
 
 using std::cout;
 using std::endl;
@@ -340,9 +340,6 @@ insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_no
     int layer_num=key_vec.size()-1;
 
 
-    assert(layer_num==0);
-    assert(layer_now==0);
-
     if(key<leaf->key[0]){
         for(int i=leaf->nkey;i>0;i--){
             leaf->lv[i]=leaf->lv[i-1];
@@ -394,7 +391,7 @@ insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_no
                 leaf->lv[i+1].link = alloc_leaf(NULL);
 
             }
-            masstree_insert(key_vec,data,layer_now+1,(NODE*)leaf->lv[0].link);
+            masstree_insert(key_vec,data,layer_now+1,(NODE*)leaf->lv[i+1].link);
 
         }
     }
@@ -411,8 +408,7 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now)
 
     int layer_num=key_vec.size()-1;
 
-    assert(layer_num==0);
-    assert(layer_now==0);
+
 
     for(int i=0;i<leaf->nkey;i++){
         cout<<"bitset="<<bitset<64>(leaf->key[i])<<endl;
@@ -893,9 +889,9 @@ search_core(const vector<uint64_t> keys)
         NODE *n = find_leaf(entry_point, key);
 
         dump(n->nkey+1);
-        cout<<"searching key="<<bitset<64>(key)<<endl;
+        cout<<"searching key="<<uint64toLetter(key)<<endl;
         for (int i = 0; i < n->nkey+1; i++) {
-            cout<<"          key="<<bitset<64>(n->key[i])<<endl;
+            cout<<"          key="<<uint64toLetter(n->key[i])<<endl;
 
             if (n->key[i] == key ) {
 
