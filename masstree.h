@@ -332,12 +332,16 @@ insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data){
 }
 //temp用の要素挿入関数
 TEMP *
-insert_in_leaf_temp(TEMP *leaf,vector<uint64_t> key_vec,DATA *data,int layer_now){
+insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_now){
     int i;
 
 
     uint64_t key=key_vec[layer_now];
-    int layer_num=key_vec.size();
+    int layer_num=key_vec.size()-1;
+
+
+    assert(layer_num==0);
+    assert(layer_now==0);
 
     if(key<leaf->key[0]){
         for(int i=leaf->nkey;i>0;i--){
@@ -406,6 +410,9 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now)
     uint64_t key=key_vec[layer_now];
 
     int layer_num=key_vec.size()-1;
+
+    assert(layer_num==0);
+    assert(layer_now==0);
 
     for(int i=0;i<leaf->nkey;i++){
         cout<<"bitset="<<bitset<64>(leaf->key[i])<<endl;
@@ -485,6 +492,8 @@ void
 masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE* root)
 {
 
+
+            cout<<"key_vecのおおきさ"<<key_vec.size()<<endl;
 
             uint64_t key = key_vec[layer_now];
             NODE *leaf;
@@ -886,7 +895,7 @@ search_core(const vector<uint64_t> keys)
         dump(n->nkey+1);
         cout<<"searching key="<<bitset<64>(key)<<endl;
         for (int i = 0; i < n->nkey+1; i++) {
-            cout<<"key="<<bitset<64>(n->key[i])<<endl;
+            cout<<"          key="<<bitset<64>(n->key[i])<<endl;
 
             if (n->key[i] == key ) {
 
