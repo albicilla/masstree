@@ -11,7 +11,9 @@ using namespace std;
 
 
 signed main(){
-   // test_string_slice();
+    //test_string_slice();
+
+    //myCompare_test();
 
 
     sample_test();

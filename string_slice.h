@@ -23,9 +23,9 @@ uint64_t DumpLetterCode(string str){
 
 
     uint64_t ret=0;
-    for(int i=0;i<(int)strs.size();i++){
+    for(int i=strs.size()-1;i>=0;i--){
         //cout<<"strs="<<strs[i]<<endl;
-        ret+=(1LL<<(i*8))*toInt(strs[i]); //8byte区切り
+        ret+=(1LL<<(i*8))*toInt(strs[strs.size()-1-i]); //8byte区切り
     }
     return (uint64_t)ret;
 }
@@ -55,11 +55,13 @@ string strs[]={"a","b","c","bb","bbbbb","abcdefghijk"};
 
 //string をうけとってオフセット付きで返す関数
 string join_offset(string s){
+    string ret="";
     int a=s.size();
     for(int i=0;i<(8-(a%8))%8;i++){
-        s+='?';
+        ret+='-';
     }
-    return s;
+    ret+=s;
+    return ret;
 }
 
 //ながさが8文字以上の文字列を8文字ずつにする。
@@ -83,7 +85,7 @@ bool test_string_slice(){
     // 'a' には 0x61=97　が割り当てられてる
     //64bit整数=8byte
     //1layor 64bit
-    //オフセットは'?'
+    //オフセットは'-'
 
 
     for(auto itr:strs){

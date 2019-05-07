@@ -1,23 +1,57 @@
 #pragma once
 
 
-const int NUM_TESTS=8;
+const int NUM_TESTS=6;
 
 
 vector<string> make_keys(){
-    string str="aaaaaaaaaaaaaaaa";
+    string str="";
     vector<string>ret;
-    for(int i=0;i<10000;i++){
-        if(i%3==0){
-            str+="a";
-        }else if(i%3==1){
-            str+="b";
-        }else if(i%3==2){
-            str+="c";
-        }
+    for(int i=0;i<10;i++){
+        str="aaaaaaaa";
+        str+='a'+i;
         ret.push_back(str);
     }
     return ret;
+}
+
+//キーの比較関数のテスト
+bool myCompare_test(){
+    string strn[]={"1","2","33","1111111111","111111112","111111113"};
+
+
+    vector<string> ret;
+    //vecはuint64_tの配列で著されたキー
+    vector<uint64_t> vec;
+    for(int i=0;i<6;i++){
+        //key_stringをuint64_t配列に変換
+        ret=eight_partition(strn[i]);
+
+        for(int i=0;i<(int)ret.size();i++){
+            uint64_t key = DumpLetterCode(join_offset(ret[i]));
+            vec.push_back(key);
+        }
+    }
+
+    for(auto itr: vec){
+        cout<<uint64toLetter(itr)<<" ";
+    }
+    cout<<endl;
+
+    sort(vec.begin(),vec.end(),myCompare());
+
+
+    for(auto itr: vec){
+        cout<<uint64toLetter(itr)<<" ";
+    }
+    cout<<endl;
+
+    for(auto itr: vec){
+        cout<<uint64toLetter(itr)<<" ";
+        cout<<bitset<64>(itr)<<endl;
+    }
+
+    return true;
 }
 
 bool sample_test(){
@@ -25,11 +59,15 @@ bool sample_test(){
     //初期化
     masstree_init_root();
 
+
+
     //挿入したキーを記憶するためのvector
     vector<vector<uint64_t>> remind(NUM_TESTS);
 
     //とりあえずサンプルインプット
     string str[]={"a","b","ddd","aaaaaaaaaa","aaaaaaaab","aaaaaaaac","aaaaaaaabbc","aaaaaaabc"};
+
+    string strn[]={"1","2","33","1111111111","111111112","111111113","11111111223"};
 
     //レイヤー1に集合させるテスト
     string str2[]={"aa","bb","cc","dd","ee","ff","gg","h"};
@@ -39,7 +77,8 @@ bool sample_test(){
     for(int i=0;i<NUM_TESTS;i++){
         //
         //key_stringをuint64_t配列に変換
-        vector<string> ret=eight_partition(str[i]);
+        vector<string> ret=eight_partition(strn[i]);
+
         //vecはuint64_tの配列で著されたキー
         vector<uint64_t> vec;
         for(int i=0;i<(int)ret.size();i++){
@@ -53,7 +92,12 @@ bool sample_test(){
 
         //TODO サンプルテストは　data適当
         //uint64_t key=vec[0];
-        for(auto itr:vec)remind[i].push_back(itr);
+        for(auto itr:vec){
+            cout<<"挿入するキー="<<uint64toLetter(itr)<<endl;
+            remind[i].push_back(itr);
+        }
+
+
 
         masstree_insert(vec,&data[i],0,NULL);
 
