@@ -270,33 +270,33 @@ void
 insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data,NODE*& r){
 
     if (node==Root){
-        cout<<"node=";print_tree(node);
-        cout<<"node_dash=";print_tree(node_dash);
+        //cout<<"node=";print_tree(node);
+        //cout<<"node_dash=";print_tree(node_dash);
 
         Root=alloc_root(node,key,node_dash,Root);
 
-        cout<<"r=";print_tree(r);
+        //cout<<"r=";print_tree(r);
 
-        cout<<"r->key[0]"<<uint64toLetter(r->key[0])<<endl;
+        //cout<<"r->key[0]"<<uint64toLetter(r->key[0])<<endl;
 
         if(r->chi[0]==NULL)ERR;
         if(r->chi[1]==NULL)ERR;
         return ;
     }
 
-    cout<<"ipt";
-    print_tree(r);
+    //cout<<"ipt";
+    //print_tree(r);
     //ローカルルート
     if(node->isRoot){
 
         
-        cout<<"local node";print_tree(node);
-        cout<<"local node_dash";print_tree(node_dash);
+        //cout<<"local node";print_tree(node);
+        //cout<<"local node_dash";print_tree(node_dash);
 
         r=alloc_root(node,key,node_dash,NewLayerRoot);
-        cout<<"local tree";print_tree(r);
+        //cout<<"local tree";print_tree(r);
 
-        cout<<"local r->key[0]"<<uint64toLetter(r->key[0])<<endl;
+        //cout<<"local r->key[0]"<<uint64toLetter(r->key[0])<<endl;
 
         if(r->chi[0]==NULL)ERR;
         if(r->chi[1]==NULL)ERR;
@@ -315,7 +315,7 @@ insert_in_parent(NODE *node, uint64_t key, NODE *node_dash, DATA *data,NODE*& r)
     while(parent->key[index]<key && index<parent->nkey)index++;
 
     if(parent->nkey<N-1){
-        cout<<"call parent insert_in_node"<<endl;
+        //cout<<"call parent insert_in_node"<<endl;
         insert_in_node(parent,node_dash,key,index);
         return ;
     }else{
@@ -391,6 +391,9 @@ insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_no
     int layer_num=key_vec.size()-1;
 
 
+
+
+
     if(key<leaf->key[0]){
 
 
@@ -400,6 +403,7 @@ insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_no
             leaf->key[i]=leaf->key[i-1];
         }
         leaf->key[0]=key;
+        leaf->lv[0].link=NULL;
         //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
         if(layer_num==layer_now){
             leaf->lv[0].data = (void*)data;
@@ -407,12 +411,15 @@ insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_no
         else {
             //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
             if(leaf->lv[0].link==NULL) {
-                cout<<"create new layer"<<endl;
+                //cout<<"create new layer"<<endl;
 
                 //leaf->lv[0].link = alloc_leaf(leaf);
                 leaf->lv[0].link = alloc_newlayer_leaf(leaf);
 
 
+            }else{
+                // no commmon prefix
+                ERR;
             }
             NODE* nd=(NODE*)leaf->lv[0].link;
 
@@ -432,6 +439,8 @@ insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_no
             }
         }
 
+        leaf->lv[i+1].link=NULL;
+
         leaf->key[i+1]=key;
         //leaf->lv[i+1].data=(void * )data;
         //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
@@ -441,11 +450,14 @@ insert_in_leaf_temp(TEMP *leaf,vector<uint64_t>& key_vec,DATA *data,int layer_no
         else {
             //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
             if(leaf->lv[i+1].link==NULL) {
-                cout<<"create new layer"<<endl;
+                //cout<<"create new layer"<<endl;
 
                 //leaf->lv[i+1].link = alloc_leaf(leaf);
                 leaf->lv[i+1].link = alloc_newlayer_leaf(leaf);
 
+            }else{
+                //no common prefix
+                ERR;
             }
             NODE* nd=(NODE*)leaf->lv[i+1].link;
 
@@ -485,7 +497,7 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now,b
         leaf->lv[0].link=NULL;
 
 
-        cout<<"ここここ"<<endl;
+        //cout<<"ここここ"<<endl;
 
 
         //このレイヤーで終わりならデータをそうでないなら次のBptreeのRootへのポインタ
@@ -495,9 +507,12 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now,b
         else {
             //次のレイヤーのbptreeを作ってnext rootがそこを指すようにする。
             if(leaf->lv[0].link==NULL) {
-                cout<<"create new layer"<<endl;
+                //cout<<"create new layer"<<endl;
 
                 leaf->lv[0].link = alloc_newlayer_leaf(leaf);
+            }else {
+                //no common prefix
+                ERR;
             }
             NODE* nd =(NODE*)leaf->lv[0].link;
             masstree_insert(key_vec,data,layer_now+1,nd);
@@ -518,7 +533,7 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now,b
                 }
             }
 
-            cout<<"!dup====="<<i+1<<endl;
+            //cout<<"!dup====="<<i+1<<endl;
 
             leaf->lv[i+1].link=NULL;
 
@@ -554,32 +569,35 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now,b
             if(leaf->lv[i+1].link==NULL){
                 //cout<<"create new layer"<<endl;
                 leaf->lv[i+1].link=alloc_newlayer_leaf(leaf);
+            }else{
+                //no common prefix
+                ERR;
             }
             NODE* nd =(NODE*)leaf->lv[i+1].link;
 
-            cout<<"before nd";
-            print_tree(nd);
-            cout<<endl;
+            //cout<<"before nd";
+            //print_tree(nd);
+            //cout<<endl;
 
 
             masstree_insert(key_vec,data,layer_now+1,nd);
             NODE* test=find_leaf((NODE*)leaf->lv[i+1].link,key_vec[layer_now]);
-            cout<<"チェエク====="<<test->nkey<<endl;
+            //cout<<"チェエク====="<<test->nkey<<endl;
 
-            cout<<"after nd";
-            print_tree(nd);
-            cout<<"after lv[i+1]";
-            print_tree((NODE*)leaf->lv[i+1].link);
-            cout<<endl;
+            //cout<<"after nd";
+            //print_tree(nd);
+            //cout<<"after lv[i+1]";
+            //print_tree((NODE*)leaf->lv[i+1].link);
+            //cout<<endl;
 
 
             /*
              * lvalue reference で(NODE*)leaf->lv[i+1].link=ndが無効になるので
              */
             leaf->lv[i+1].link = nd;
-            cout<<"after lv[i+1]";
-            print_tree((NODE*)leaf->lv[i+1].link);
-            cout<<endl;
+            //cout<<"after lv[i+1]";
+            //print_tree((NODE*)leaf->lv[i+1].link);
+            //cout<<endl;
 
         }
 
@@ -602,13 +620,13 @@ masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE*& root)
             uint64_t key = key_vec[layer_now];
             NODE *leaf;
 
-            cout<<"processing letter="<<uint64toLetter(key)<<endl;
+            //cout<<"processing letter="<<uint64toLetter(key)<<endl;
 
 
 
             if(root!=NULL){
-                cout<<"masstree_insertごとにroot"<<endl;
-                print_tree(root);
+                //cout<<"masstree_insertごとにroot"<<endl;
+                //print_tree(root);
 
 
                 //ここでroot = leafとなる
@@ -638,6 +656,8 @@ masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE*& root)
                     //clean leaf
                     for (int i = 0; i < N - 1; i++) {
                         leaf->lv[i].data = NULL;
+                        leaf->lv[i].link = NULL;
+
                         leaf->key[i] = 0;
                     }
                     leaf->nkey = 0;
@@ -661,12 +681,12 @@ masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE*& root)
 
 
                     //cout<<"ready for insert_in_parent"<<endl;
-                    cout<<"root chk before"<<endl;
-                    print_tree(root);
+                    //cout<<"root chk before"<<endl;
+                    //print_tree(root);
                     insert_in_parent(leaf, key_dash, leaf_dash, data,root);
-                    cout<<"after"<<endl;
-                    print_tree(root);
-                    cout<<"fin";
+                    //cout<<"after"<<endl;
+                    //print_tree(root);
+                    //cout<<"fin";
                     //cout<<"work correctly insert_in_parent"<<endl;
 
 
@@ -718,7 +738,7 @@ masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE*& root)
 
                     //leaf->lv[N].link = leaf_dash;
 
-                    cout<<"Root";print_tree(Root);
+                    //cout<<"Root";//print_tree(Root);
 
 
                     for (int i = 0; i < N - 1; i++) {
@@ -748,18 +768,18 @@ masstree_insert(vector<uint64_t>& key_vec, DATA *data,int layer_now,NODE*& root)
 
                     //dleaf->parent =
 
-                    cout<<"Root split bf"<<endl;
-                    print_tree(Root);
-                    cout<<"Root split"<<endl;
+                    //cout<<"Root split bf"<<endl;
+                    //print_tree(Root);
+                    //cout<<"Root split"<<endl;
 
 
-                    cout<<"leaf";
-                    print_tree(leaf);
+                    //cout<<"leaf";
+                    //print_tree(leaf);
 
-                    cout<<"leaf_dash";
-                    print_tree(leaf_dash);
+                    //cout<<"leaf_dash";
+                    //print_tree(leaf_dash);
 
-                    cout<<"key_dash="<<uint64toLetter(key_dash)<<endl;
+                    //cout<<"key_dash="<<uint64toLetter(key_dash)<<endl;
 
 
 
@@ -790,13 +810,13 @@ search_core(const vector<uint64_t> keys)
         uint64_t key=keys[lay];
         NODE *n = find_leaf(entry_point, key);
 
-        cout<<"entry_point";print_tree(entry_point);
+        //cout<<"entry_point";print_tree(entry_point);
 
         //dump(n->nkey+1);
-        cout<<"searching key="<<uint64toLetter(key)<<endl;
-        cout<<endl;
+        //cout<<"searching key="<<uint64toLetter(key)<<endl;
+        //cout<<endl;
         for (int i = 0; i < n->nkey+1; i++) {
-            cout<<"          key="<<uint64toLetter(n->key[i])<<endl;
+            //cout<<"          key="<<uint64toLetter(n->key[i])<<endl;
 
             if (n->key[i] == key ) {
 
@@ -804,11 +824,13 @@ search_core(const vector<uint64_t> keys)
                     if((NODE*)n->lv[i].link==NULL){
                         ERR;
                     }
+
+
                     entry_point = (NODE*)n->lv[i].link;
 
 
-                    cout<<"print_tree="<<endl;
-                    print_tree(entry_point);
+                    //cout<<"print_tree entry_point="<<endl;
+                    //print_tree(entry_point);
 
                     //TODO entry_point の親がrootになってる
                     //entry_point=entry_point->parent;
@@ -816,17 +838,17 @@ search_core(const vector<uint64_t> keys)
 
 
                     //まだのこりのstringがある
-                    cout<<"go to next layer..."<<endl;
+                    //cout<<"go to next layer..."<<endl;
 
                     break;
                 }
                 DATA* ptr=(DATA*)(n->lv[i].data);
                 if(ptr==NULL){
-                    cout<<"no data!!"<<endl;
+                    //cout<<"no data!!"<<endl;
                 }
                 //TODO
-                cout<<"find! sample_num="<<ptr->key<<" val="<<ptr->val<<endl;
-                //cout<<"find value from pointer="<< ptr->val <<endl;
+                //cout<<"find! sample_num="<<ptr->key<<" val="<<ptr->val<<endl;
+                ////cout<<"find value from pointer="<< ptr->val <<endl;
                 return 1;
             }
         }
@@ -840,16 +862,5 @@ search_core(const vector<uint64_t> keys)
 }
 
 
-
-int
-interactive()
-{
-    int key;
-
-    std::cout << "Key: ";
-    std::cin >> key;
-
-    return key;
-}
 
 

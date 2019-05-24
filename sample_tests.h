@@ -1,7 +1,9 @@
 #pragma once
 #include "utils.h"
+#include <fstream>   // ifstream, ofstream
+#include <sstream>   // istringstream
 
-const int NUM_TESTS=100000;
+const int NUM_TESTS=1000000;
 
 
 vector<string> make_keys(){
@@ -46,7 +48,7 @@ bool myCompare_test(){
 
 
         for(int i=0;i<(int)ret.size();i++){
-            cout<<"ret[i]="<<i<<" "<<ret[i]<<endl;
+            //cout<<"ret[i]="<<i<<" "<<ret[i]<<endl;
 
             uint64_t key = DumpLetterCode(join_offset(ret[i]));
 
@@ -94,10 +96,26 @@ bool sample_test(){
 
     string s;
     vector<string> str_vec;
-    while(cin>>s){
-        if(s=="0")break;
-        str_vec.push_back(s);
+
+    ifstream ifs("/Users/albicilla/CLionProjects/masstree/key_1M.txt");
+
+    string reading_line_buffer;
+
+    cout<<"reading..."<<endl;
+
+    if(ifs.fail()){
+        ERR;
     }
+
+    while(getline(ifs,reading_line_buffer))
+    {
+
+
+        //cout<<reading_line_buffer<<endl;
+        str_vec.push_back(reading_line_buffer);
+
+    }
+    cout<<"fin read"<<endl;
 
 
 
@@ -125,16 +143,16 @@ bool sample_test(){
         //TODO サンプルテストは　data適当
         //uint64_t key=vec[0];
         for(auto itr:vec){
-            cout<<"挿入するキー="<<uint64toLetter(itr)<<endl;
+            //cout<<"挿入するキー="<<uint64toLetter(itr)<<endl;
             remind[i].push_back(itr);
         }
 
 
 
         masstree_insert(vec,&data[0],0,Dummy);
-        cout<<"after insert=";print_tree(Root);
+        //cout<<"after insert=";print_tree(Root);
 
-        //cout<<"finish insert"<<endl;
+        if(i%100000==0)cout<<"finish insert "<<i<<endl;
     }
 
 
@@ -145,14 +163,16 @@ bool sample_test(){
     for(int i=0;i<NUM_TESTS;i++){
 
 
-        cout<<"こいつ->";
+        //cout<<"こいつ->";
         for(auto itr:remind[i]){
-            cout<<bitset<64>(itr)<<" ";
+            //cout<<bitset<64>(itr)<<" ";
         }
-        cout<<"を見つけてくれ!"<<endl;
+        //cout<<"を見つけてくれ!"<<endl;
         if(!search_core(remind[i])){
-            cout<<"見つからなかったよ.."<<endl;
+            //cout<<"見つからなかったよ.."<<endl;
             return false;
+        }else{
+            cout<<"find! "<<i<<endl;
         }
     }
 
