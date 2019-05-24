@@ -14,6 +14,7 @@ signed main(){
     //test_string_slice();
 
     //myCompare_test();
+    //test_DumpLetterCode();
 
 
     sample_test();

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -40,7 +41,7 @@ string uint64toLetter(uint64_t a){
         string temp={asciiChar};
         vec.push_back(temp);
     }
-
+    reverse(vec.begin(),vec.end());
     string ret;
     for(auto itr:vec){
         ret+=itr;
