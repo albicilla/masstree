@@ -97,7 +97,7 @@ bool sample_test(){
     string s;
     vector<string> str_vec;
 
-    ifstream ifs("/Users/albicilla/CLionProjects/masstree/key_1M.txt");
+    ifstream ifs("/Users/albicilla/CLionProjects/masstree/out.txt");
 
     string reading_line_buffer;
 

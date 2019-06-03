@@ -571,7 +571,7 @@ insert_in_leaf(NODE *leaf, vector<uint64_t>& key_vec, DATA *data,int layer_now,b
                 leaf->lv[i+1].link=alloc_newlayer_leaf(leaf);
             }else{
                 //no common prefix
-                ERR;
+               // ERR;
             }
             NODE* nd =(NODE*)leaf->lv[i+1].link;
 
